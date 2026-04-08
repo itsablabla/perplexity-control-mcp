@@ -81,6 +81,15 @@ async function request<T = unknown>(
   path: string,
   options: RequestInit & { baseUrl?: string } = {}
 ): Promise<ApiResponse<T> | ApiError> {
+  if (!config.PERPLEXITY_API_KEY) {
+    return {
+      error: true,
+      status: 401,
+      message:
+        "PERPLEXITY_API_KEY is not configured. Set this environment variable in your Railway project (or .env file) and redeploy.",
+    };
+  }
+
   const baseUrl = options.baseUrl ?? "https://api.perplexity.ai";
   const url = `${baseUrl}${path}`;
 

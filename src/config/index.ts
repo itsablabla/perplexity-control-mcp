@@ -2,7 +2,8 @@ import { z } from "zod";
 import "dotenv/config";
 
 const ConfigSchema = z.object({
-  PERPLEXITY_API_KEY: z.string().min(1, "PERPLEXITY_API_KEY is required"),
+  // API key is optional at startup — tools will return an error if called without it
+  PERPLEXITY_API_KEY: z.string().optional().default(""),
   MCP_TRANSPORT: z.enum(["stdio", "http"]).default("stdio"),
   MCP_PORT: z.coerce.number().int().positive().default(3001),
 });
@@ -15,7 +16,14 @@ function loadConfig() {
       .join("\n");
     throw new Error(`Configuration error:\n${issues}`);
   }
-  return result.data;
+  const cfg = result.data;
+  if (!cfg.PERPLEXITY_API_KEY) {
+    console.warn(
+      "[perplexity-control-mcp] WARNING: PERPLEXITY_API_KEY is not set. " +
+        "Server will start but all API calls will fail until the key is configured."
+    );
+  }
+  return cfg;
 }
 
 export const config = loadConfig();
